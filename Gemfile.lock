@@ -5,6 +5,7 @@ GEM
       multipart-post (~> 1.2.0)
     faraday_middleware (0.9.0)
       faraday (>= 0.7.4, < 0.9)
+    grpc-tools (0.15.0)
     multipart-post (1.2.0)
 
 PLATFORMS
@@ -13,3 +14,10 @@ PLATFORMS
 DEPENDENCIES
   faraday (~> 0.8)
   faraday_middleware
+  grpc-tools
+
+RUBY VERSION
+   ruby 2.3.1p112
+
+BUNDLED WITH
+   1.12.5

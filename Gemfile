@@ -4,3 +4,4 @@ ruby IO.read('.ruby-version').strip
 
 gem 'faraday', '~> 0.8'
 gem 'faraday_middleware'
+gem 'grpc-tools'

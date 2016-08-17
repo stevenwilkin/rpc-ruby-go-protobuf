@@ -1,15 +1,35 @@
 {
-	"ImportPath": "soa",
-	"GoVersion": "go1.4beta1",
+	"ImportPath": "github.com/stevenwilkin/rpc-ruby-go-protobuf",
+	"GoVersion": "go1.5.1",
 	"Deps": [
 		{
-			"ImportPath": "github.com/pilu/config",
-			"Rev": "a4c5c00ca7645976afc6537dd177bf78c553b901"
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "2c1988e8c18d14b142c0b472624f71647cf39adb"
 		},
 		{
-			"ImportPath": "github.com/pilu/traffic",
-			"Comment": "v0.5.0",
-			"Rev": "074cc94dc35275f20deb37e78b420b4ca0ccdca2"
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2",
+			"Rev": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf"
+		},
+		{
+			"ImportPath": "golang.org/x/net/internal/timeseries",
+			"Rev": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf"
+		},
+		{
+			"ImportPath": "golang.org/x/net/lex/httplex",
+			"Rev": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf"
+		},
+		{
+			"ImportPath": "golang.org/x/net/trace",
+			"Rev": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf"
+		},
+		{
+			"ImportPath": "google.golang.org/grpc",
+			"Comment": "v1.0.0-166-gc2c110d",
+			"Rev": "c2c110d5cf950aef5e2af86b2f5d0a53400ff90b"
 		}
 	]
 }

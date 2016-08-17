@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package itemsproto;
+
+message Item {
+  uint32 id = 1;
+  string text = 2;
+}
+
+message AllResponse {
+  repeated Item items = 1;
+}
+
+message CreateRequest {
+  string text = 1;
+}
+
+message GetRequest {
+  uint32 id = 1;
+}
+
+message UpdateRequest {
+  uint32 id = 1;
+  string text = 2;
+}
+
+message DeleteRequest {
+  uint32 id = 1;
+}
+
+message Empty {
+}
+
+service Items {
+  rpc All(Empty) returns (AllResponse);
+  rpc Create(CreateRequest) returns (Empty);
+  rpc Get(GetRequest) returns (Item);
+  rpc Update(UpdateRequest) returns (Item);
+  rpc Delete(DeleteRequest) returns (Empty);
+}

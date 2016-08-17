@@ -1,106 +1,77 @@
 package main
 
 import (
-	"encoding/json"
-	"github.com/pilu/traffic"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-)
+	"errors"
+	"log"
+	"net"
 
-type Item struct {
-	Id   uint   `json:"id"`
-	Text string `json:"text"`
-}
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+
+	pb "github.com/stevenwilkin/rpc-ruby-go-protobuf/proto"
+)
 
 var (
-	items       = map[uint]string{}
-	nextId uint = 1
+	items         = map[uint32]string{}
+	nextId uint32 = 1
 )
 
-func returnItemAsJson(w traffic.ResponseWriter, item Item) {
-	b, _ := json.Marshal(item)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
-}
+type itemsServer struct{}
 
-func getId(r *traffic.Request) uint {
-	idString := r.URL.Query().Get("id")
-	id, _ := strconv.ParseUint(idString, 10, 0)
-	return uint(id)
-}
-
-func getItem(r *traffic.Request) (Item, bool) {
-	id := getId(r)
-	text, present := items[id]
-
-	if present {
-		return Item{id, text}, true
-	} else {
-		return Item{}, false
-	}
-}
-
-func checkItemExists(w traffic.ResponseWriter, r *traffic.Request) {
-	if _, present := getItem(r); !present {
-		w.WriteHeader(http.StatusNotFound)
-		w.WriteText("Item Not Found")
-	}
-}
-
-func itemsHandler(w traffic.ResponseWriter, r *traffic.Request) {
-	allItems := []Item{}
+func (s *itemsServer) All(_ context.Context, _ *pb.Empty) (*pb.AllResponse, error) {
+	allItems := []*pb.Item{}
 	for id, text := range items {
-		allItems = append(allItems, Item{id, text})
+		allItems = append(allItems, &pb.Item{id, text})
 	}
 
-	b, _ := json.Marshal(allItems)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
+	return &pb.AllResponse{Items: allItems}, nil
 }
 
-func createItemHandler(w traffic.ResponseWriter, r *traffic.Request) {
-	body, _ := ioutil.ReadAll(r.Body)
-
+func (s *itemsServer) Create(_ context.Context, req *pb.CreateRequest) (*pb.Empty, error) {
 	id := nextId
-	items[id] = string(body)
+	items[id] = req.Text
 	nextId++
 
-	returnItemAsJson(w, Item{id, string(body)})
+	return &pb.Empty{}, nil
 }
 
-func itemHandler(w traffic.ResponseWriter, r *traffic.Request) {
-	item, _ := getItem(r)
-	returnItemAsJson(w, item)
+func (s *itemsServer) Get(_ context.Context, req *pb.GetRequest) (*pb.Item, error) {
+	text, ok := items[req.Id]
+	if !ok {
+		return &pb.Item{}, errors.New("Not found")
+	}
+
+	return &pb.Item{req.Id, text}, nil
 }
 
-func updateItemHandler(w traffic.ResponseWriter, r *traffic.Request) {
-	id := getId(r)
-	body, _ := ioutil.ReadAll(r.Body)
+func (s *itemsServer) Update(_ context.Context, req *pb.UpdateRequest) (*pb.Item, error) {
+	_, ok := items[req.Id]
+	if !ok {
+		return &pb.Item{}, errors.New("Not found")
+	}
 
-	items[id] = string(body)
+	items[req.Id] = req.Text
 
-	returnItemAsJson(w, Item{id, string(body)})
+	return &pb.Item{req.Id, items[req.Id]}, nil
 }
 
-func deleteItemHandler(w traffic.ResponseWriter, r *traffic.Request) {
-	id := getId(r)
-	delete(items, id)
-	w.WriteHeader(http.StatusNoContent)
+func (s *itemsServer) Delete(_ context.Context, req *pb.DeleteRequest) (*pb.Empty, error) {
+	_, ok := items[req.Id]
+	if !ok {
+		return &pb.Empty{}, errors.New("Not found")
+	}
+
+	delete(items, req.Id)
+
+	return &pb.Empty{}, nil
 }
 
 func main() {
-	router := traffic.New()
-
-	router.Get("/items", itemsHandler)
-	router.Post("/items", createItemHandler)
-	router.Get("/items/:id", itemHandler).
-		AddBeforeFilter(checkItemExists)
-	router.Put("/items/:id", updateItemHandler).
-		AddBeforeFilter(checkItemExists)
-	router.Delete("/items/:id", deleteItemHandler).
-		AddBeforeFilter(checkItemExists)
-
-	http.Handle("/", router)
-	http.ListenAndServe(":7000", nil)
+	lis, err := net.Listen("tcp", ":7000")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	grpcServer := grpc.NewServer()
+	pb.RegisterItemsServer(grpcServer, &itemsServer{})
+	grpcServer.Serve(lis)
 }
